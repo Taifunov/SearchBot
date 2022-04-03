@@ -18,7 +18,7 @@ public class Startup
         _connectionString = Environment.GetEnvironmentVariable("ConnectionString") ?? throw new InvalidOperationException("ConnectionString is empty");
 #else
         Token = BotConfig.BotToken;
-        _connectionString = "User ID=searchUser;Password=searchUserPassword;Host=176.36.160.215;Port=5432;Database=SearchDb;Integrated Security=true;Pooling=true";
+        _connectionString = Configuration.GetConnectionString(nameof(SearchBotContext));
 #endif
     }
 
@@ -52,7 +52,7 @@ public class Startup
             .AddConsole()
             .AddFilter((category, level)
                 => category == DbLoggerCategory.Database.Command.Name
-                   && level == LogLevel.Information);
+                   && level == LogLevel.Warning);
     });
 
     public static NpgsqlDbContextOptionsBuilder SetupNpgSqlDbOpts(NpgsqlDbContextOptionsBuilder opts)
