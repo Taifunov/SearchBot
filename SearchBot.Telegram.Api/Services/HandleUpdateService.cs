@@ -55,7 +55,7 @@ public class HandleUpdateService : IHandleUpdateService
         {
             if (message.ReplyToMessage is not null)
             {
-                await ReplyToUserAsync(message.ReplyToMessage, message.Text, cancellationToken);
+                await ReplyToUserMessageAsync(message, cancellationToken);
                 return;
             }
 
@@ -67,7 +67,7 @@ public class HandleUpdateService : IHandleUpdateService
 
             var user = await _context.EnsureUserExistAsync(message, cancellationToken);
 
-            await SaveMessageAsync(user, message.Text, cancellationToken);
+            await SaveMessageAsync(user, message.Text, message.MessageId, cancellationToken);
 
             await _botClient.ForwardMessageAsync(AdminId, message.Chat.Id, message.MessageId, cancellationToken: cancellationToken);
 
@@ -87,11 +87,13 @@ public class HandleUpdateService : IHandleUpdateService
         await _botClient.SendTextMessageAsync(chatId, message, cancellationToken: cancellationToken);
     }
 
-    private async Task SaveMessageAsync(User user, string message, CancellationToken cancellationToken)
+    private async Task SaveMessageAsync(User user, string message, int messageId, CancellationToken cancellationToken)
     {
         var messageToSave = new UserMessages
         {
             Username = user.TelegramUser!.Username!,
+            TelegramUserId = user.TelegramUser.Id,
+            TelegramMessageId = messageId,
             Content = message
         };
 
@@ -99,9 +101,17 @@ public class HandleUpdateService : IHandleUpdateService
         await _context.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task ReplyToUserAsync(Message replyMessage, string messageToUser, CancellationToken cancellationToken = default)
+    private async Task ReplyToUserMessageAsync(Message message, CancellationToken cancellationToken = default)
     {
-        await _botClient.SendTextMessageAsync(replyMessage.ForwardFrom!.Id, messageToUser, cancellationToken: cancellationToken);
+        var replyMessage = message.ReplyToMessage;
+
+        var messageToReply = await _context.Messages.FirstOrDefaultAsync(x => x.TelegramUserId == replyMessage.ForwardFrom.Id &&  x.Content == replyMessage.Text, cancellationToken);
+        if (replyMessage is null)
+        {
+            return;
+        }
+
+        await _botClient.SendTextMessageAsync(replyMessage.ForwardFrom!.Id, message.Text!, replyToMessageId: messageToReply?.TelegramMessageId, cancellationToken: cancellationToken);
     }
 
     private Task UnknownUpdateHandlerAsync(Update update)

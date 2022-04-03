@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SearchBot.Telegram.Data.Context;
@@ -11,9 +12,10 @@ using SearchBot.Telegram.Data.Context;
 namespace SearchBot.Telegram.Data.Migrations
 {
     [DbContext(typeof(SearchBotContext))]
-    partial class SearchBotContextModelSnapshot : ModelSnapshot
+    [Migration("20220403084621_Added_column_telegramMessageId")]
+    partial class Added_column_telegramMessageId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -109,10 +111,7 @@ namespace SearchBot.Telegram.Data.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("TelegramMessageId")
-                        .HasColumnType("integer");
-
-                    b.Property<long>("TelegramUserId")
+                    b.Property<long>("TelegramMessageId")
                         .HasColumnType("bigint");
 
                     b.Property<string>("Username")
