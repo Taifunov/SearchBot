@@ -23,7 +23,7 @@ public class HandleUpdateService : IHandleUpdateService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _context = context ?? throw new ArgumentNullException(nameof(context));
 #if RELEASE
-        _adminId = Environment.GetEnvironmentVariable("AdminId");
+        _adminId = long.Parse(Environment.GetEnvironmentVariable("AdminId"));
 #else
         _adminId = 163842273;
 #endif

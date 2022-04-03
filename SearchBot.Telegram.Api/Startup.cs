@@ -14,7 +14,7 @@ public class Startup
         BotConfig = Configuration.GetSection("BotConfiguration").Get<BotConfiguration>();
 
 #if RELEASE
-        Token = Environment.GetEnvironmentVariable("BotToken");
+        Token = Environment.GetEnvironmentVariable("BotToken") ?? throw new InvalidOperationException($"{nameof(Token)} is empty"); ;
         _connectionString = Environment.GetEnvironmentVariable("ConnectionString") ?? throw new InvalidOperationException("ConnectionString is empty");
 #else
         Token = BotConfig.BotToken;
