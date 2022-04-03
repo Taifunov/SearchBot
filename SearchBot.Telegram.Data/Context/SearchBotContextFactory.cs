@@ -19,6 +19,7 @@ namespace SearchBot.Telegram.Data.Context
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", true, true)
+                .AddEnvironmentVariables()
                 .Build();
 
             var optionsBuilder = new DbContextOptionsBuilder()
