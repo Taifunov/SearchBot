@@ -15,13 +15,18 @@ public class HandleUpdateService : IHandleUpdateService
     private readonly ITelegramBotClient _botClient;
     private readonly ILogger<HandleUpdateService> _logger;
     private readonly SearchBotContext _context;
-    private const long AdminId = 163842273;
+    private readonly long _adminId;
 
     public HandleUpdateService(ITelegramBotClient botClient, ILogger<HandleUpdateService> logger, SearchBotContext context)
     {
         _botClient = botClient ?? throw new ArgumentNullException(nameof(botClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _context = context ?? throw new ArgumentNullException(nameof(context));
+#if RELEASE
+        _adminId = Environment.GetEnvironmentVariable("AdminId");
+#else
+        _adminId = 163842273;
+#endif
     }
 
     public async Task HandleUpdate(Update update)
@@ -70,7 +75,7 @@ public class HandleUpdateService : IHandleUpdateService
 
             await SaveMessageAsync(user, message.Text, message.MessageId, cancellationToken);
 
-            await _botClient.ForwardMessageAsync(AdminId, message.Chat.Id, message.MessageId, cancellationToken: cancellationToken);
+            await _botClient.ForwardMessageAsync(_adminId, message.Chat.Id, message.MessageId, cancellationToken: cancellationToken);
 
             await SendResponseMessageAsync("response-message", message.Chat.Id, cancellationToken);
         }
@@ -106,7 +111,7 @@ public class HandleUpdateService : IHandleUpdateService
     {
         var replyMessage = message.ReplyToMessage;
 
-        var messageToReply = await _context.Messages.FirstOrDefaultAsync(x => x.TelegramUserId == replyMessage.ForwardFrom.Id &&  x.Content == replyMessage.Text, cancellationToken);
+        var messageToReply = await _context.Messages.FirstOrDefaultAsync(x => x.TelegramUserId == replyMessage!.ForwardFrom!.Id &&  x.Content == replyMessage.Text, cancellationToken);
         
         if (replyMessage is null)
         {

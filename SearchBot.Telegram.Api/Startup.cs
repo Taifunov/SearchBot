@@ -15,15 +15,17 @@ public class Startup
 
 #if RELEASE
         Token = Environment.GetEnvironmentVariable("BotToken");
+        _connectionString = Environment.GetEnvironmentVariable("ConnectionString") ?? throw new InvalidOperationException("ConnectionString is empty");
 #else
         Token = BotConfig.BotToken;
+        _connectionString = "User ID=searchUser;Password=searchUserPassword;Host=176.36.160.215;Port=5432;Database=SearchDb;Integrated Security=true;Pooling=true";
 #endif
     }
 
     public IConfiguration Configuration { get; }
     private BotConfiguration BotConfig { get; }
     private string Token { get; }
-    private readonly string _connectionString = Environment.GetEnvironmentVariable("ConnectionString") ?? throw new ArgumentException("ConnectionString is empty");
+    private readonly string _connectionString;
 
     public void ConfigureServices(IServiceCollection services)
     {

@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-namespace SearchBot.Telegram.Data.Models;
+﻿namespace SearchBot.Telegram.Data.Models;
 
 public class TelegramUser
 {
@@ -16,7 +14,7 @@ public class TelegramUser
     //
     // Summary:
     //     User's or bot's first name
-    public string FirstName { get; set; }
+    public string FirstName { get; set; } = "";
     //
     // Summary:
     //     Optional. User's or bot's last name
@@ -31,6 +29,6 @@ public class TelegramUser
     public string? LanguageCode { get; set; }
 
     
-    public User User { get; set; }
+    public User? User { get; set; }
 
 }

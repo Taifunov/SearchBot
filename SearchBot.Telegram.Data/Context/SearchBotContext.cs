@@ -11,5 +11,7 @@ public sealed class SearchBotContext : DbContext
     public DbSet<UserMessages> Messages { get; set; }
     public DbSet<ReplyMessage> ReplyMessages { get; set; }
 
+#pragma warning disable CS8618
     public SearchBotContext(DbContextOptions options) : base(options) { }
+#pragma warning restore CS8618
 }
