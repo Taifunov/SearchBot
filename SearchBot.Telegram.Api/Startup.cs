@@ -50,7 +50,7 @@ public class Startup
             .AddConsole()
             .AddFilter((category, level)
                 => category == DbLoggerCategory.Database.Command.Name
-                   && level == LogLevel.Warning);
+                   && level == LogLevel.Information);
     });
 
     public static NpgsqlDbContextOptionsBuilder SetupNpgSqlDbOpts(NpgsqlDbContextOptionsBuilder opts)
