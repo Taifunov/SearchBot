@@ -17,8 +17,14 @@ public class ConfigureWebhook : IHostedService
     {
         _logger = logger;
         _services = serviceProvider;
+        _botConfig = configuration.GetSection("BotConfiguration").Get<BotConfiguration>();
+#if RELEASE
         _hostAddress = Environment.GetEnvironmentVariable("HostAddress") ?? throw new ArgumentNullException($"{nameof(_hostAddress)} is null");
         _botToken = Environment.GetEnvironmentVariable("BotToken") ?? throw new ArgumentNullException($"{nameof(_botToken)} is null");
+#else
+        _botToken = _botConfig.BotToken;
+        _hostAddress = _botConfig.HostAddress;
+#endif
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -29,11 +35,6 @@ public class ConfigureWebhook : IHostedService
 
         var (botConfig, loadBotConfigErrMsg) = await BotConfiguration.LoadBotConfigAsync(cancellationToken);
 
-        // Configure custom endpoint per Telegram API recommendations:
-        // https://core.telegram.org/bots/api#setwebhook
-        // If you'd like to make sure that the Webhook request comes from Telegram, we recommend
-        // using a secret path in the URL, e.g. https://www.example.com/<token>.
-        // Since nobody else knows your bot's token, you can be pretty sure it's us.
         var webhookAddress = @$"{_hostAddress}/bot/{_botToken}";
         _logger.LogInformation("Setting webhook: {webhookAddress}", webhookAddress);
         await botClient.SetWebhookAsync(
