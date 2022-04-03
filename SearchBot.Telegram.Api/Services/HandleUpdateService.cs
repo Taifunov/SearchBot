@@ -41,6 +41,7 @@ public class HandleUpdateService : IHandleUpdateService
         catch (Exception exception)
         {
             await HandleErrorAsync(exception);
+            _logger.LogError(exception, exception.InnerException?.ToString());
         }
     }
 
@@ -106,9 +107,10 @@ public class HandleUpdateService : IHandleUpdateService
         var replyMessage = message.ReplyToMessage;
 
         var messageToReply = await _context.Messages.FirstOrDefaultAsync(x => x.TelegramUserId == replyMessage.ForwardFrom.Id &&  x.Content == replyMessage.Text, cancellationToken);
+        
         if (replyMessage is null)
         {
-            return;
+            throw new ArgumentNullException("Reply message is null");
         }
 
         await _botClient.SendTextMessageAsync(replyMessage.ForwardFrom!.Id, message.Text!, replyToMessageId: messageToReply?.TelegramMessageId, cancellationToken: cancellationToken);
