@@ -16,7 +16,6 @@ public static class AuthCommand
     {
         //_logger.LogInformation($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
 
-
         var replyMarkdownV2 = $@"🧑‍✈️ Good evening\! Thank you for flying with us\. ✈️ To get your boarding pass, please use `/link <UUID>` to link your Telegram account to your user\.";
 
         return botClient.SendTextMessageAsync(message.Chat.Id,
