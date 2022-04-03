@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SearchBot.Telegram.Data.Context;
@@ -11,9 +12,10 @@ using SearchBot.Telegram.Data.Context;
 namespace SearchBot.Telegram.Data.Migrations
 {
     [DbContext(typeof(SearchBotContext))]
-    partial class SearchBotContextModelSnapshot : ModelSnapshot
+    [Migration("20220403075233_Added_CreatedUSer_Column")]
+    partial class Added_CreatedUSer_Column
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

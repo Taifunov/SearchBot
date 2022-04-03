@@ -1,5 +1,4 @@
 using Telegram.Bot;
-using Telegram.Bot.Extensions.Polling;
 using Telegram.Bot.Types.Enums;
 
 namespace SearchBot.Telegram.Api.Services;
@@ -38,14 +37,6 @@ public class ConfigureWebhook : IHostedService
             url: webhookAddress,
             allowedUpdates: Array.Empty<UpdateType>(),
             cancellationToken: cancellationToken);
-
-        //var updateHandler = new UpdateHandler(me.Username, botConfig);
-        //var updateReceiver = new QueuedUpdateReceiver(botClient, null, UpdateHandler.HandleErrorAsync);
-        //await updateHandler.HandleUpdateStreamAsync(botClient, updateReceiver, cancellationToken);
-
-        //var updateHandler = new HandleUpdateService(me.Username, botConfig, botClient, _logger);
-        //var updateReceiver = new QueuedUpdateReceiver(botClient, null, UpdateHandler.HandleErrorAsync);
-        //await updateHandler.HandleUpdateStreamAsync(botClient, updateReceiver, cancellationToken);
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
