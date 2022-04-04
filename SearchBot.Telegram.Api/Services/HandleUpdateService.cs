@@ -114,12 +114,14 @@ public class HandleUpdateService : IHandleUpdateService
     {
         var replyMessage = message.ReplyToMessage;
 
-        var messageToReply = await _context.Messages.FirstOrDefaultAsync(x => x.TelegramUserId == replyMessage!.ForwardFrom!.Id && x.Content == replyMessage.Text, cancellationToken);
-
         if (replyMessage is null)
         {
             throw new ArgumentNullException("Reply message is null");
         }
+
+        var forwardFromId = replyMessage.ForwardFrom?.Id;
+
+        var messageToReply = await _context.Messages.FirstOrDefaultAsync(x => x.TelegramUserId == forwardFromId.GetValueOrDefault() && x.Content == replyMessage.Text, cancellationToken);
 
         await _botClient.SendTextMessageAsync(replyMessage.ForwardFrom!.Id, message.Text!, replyToMessageId: messageToReply?.TelegramMessageId, cancellationToken: cancellationToken);
     }
