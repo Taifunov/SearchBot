@@ -69,6 +69,7 @@ public class Startup
             app.UseDeveloperExceptionPage();
         }
 
+
         app.UseRouting();
         app.UseCors();
 

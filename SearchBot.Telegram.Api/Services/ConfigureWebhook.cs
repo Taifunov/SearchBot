@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using SearchBot.Telegram.Api.Utils;
+using SearchBot.Telegram.Data.Context;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 
@@ -33,6 +36,8 @@ public class ConfigureWebhook : IHostedService
         var botClient = scope.ServiceProvider.GetRequiredService<ITelegramBotClient>();
         var me = await botClient.GetMeAsync(cancellationToken);
 
+        await scope.ServiceProvider.MigrateDatabase<SearchBotContext>();
+        
         var (botConfig, loadBotConfigErrMsg) = await BotConfiguration.LoadBotConfigAsync(cancellationToken);
 
         var webhookAddress = @$"{_hostAddress}/bot/{_botToken}";
