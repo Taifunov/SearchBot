@@ -73,11 +73,14 @@ public class HandleUpdateService : IHandleUpdateService
 
             var user = await _context.EnsureUserExistAsync(message, cancellationToken);
 
-            await SaveMessageAsync(user, message.Text, message.MessageId, cancellationToken);
+            await SaveMessageAsync(user, message.Text, message.MessageId,cancellationToken);
 
             await _botClient.ForwardMessageAsync(_adminId, message.Chat.Id, message.MessageId, cancellationToken: cancellationToken);
-
-            await SendResponseMessageAsync("response-message", message.Chat.Id, cancellationToken);
+            
+            if (user.LastAction > DateTime.UtcNow.AddHours(-1))
+            {
+                await SendResponseMessageAsync("response-message", message.Chat.Id, cancellationToken);
+            }
         }
     }
 
@@ -93,8 +96,13 @@ public class HandleUpdateService : IHandleUpdateService
         await _botClient.SendTextMessageAsync(chatId, message, cancellationToken: cancellationToken);
     }
 
-    private async Task SaveMessageAsync(User user, string message, int messageId, CancellationToken cancellationToken)
+    private async Task SaveMessageAsync(User user, string message, int messageId, CancellationToken cancellationToken = default)
     {
+        if (user.TelegramUser is null)
+        {
+            throw new ArgumentNullException("Telegram user is null");
+        }
+
         var messageToSave = new UserMessages
         {
             Username = user.TelegramUser!.Username!,
@@ -111,8 +119,8 @@ public class HandleUpdateService : IHandleUpdateService
     {
         var replyMessage = message.ReplyToMessage;
 
-        var messageToReply = await _context.Messages.FirstOrDefaultAsync(x => x.TelegramUserId == replyMessage!.ForwardFrom!.Id &&  x.Content == replyMessage.Text, cancellationToken);
-        
+        var messageToReply = await _context.Messages.FirstOrDefaultAsync(x => x.TelegramUserId == replyMessage!.ForwardFrom!.Id && x.Content == replyMessage.Text, cancellationToken);
+
         if (replyMessage is null)
         {
             throw new ArgumentNullException("Reply message is null");
