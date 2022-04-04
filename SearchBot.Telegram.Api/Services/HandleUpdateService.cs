@@ -112,11 +112,11 @@ public class HandleUpdateService : IHandleUpdateService
 
     private async Task ReplyToUserMessageAsync(Message message, CancellationToken cancellationToken = default)
     {
-        var replyMessage = message.ReplyToMessage;
+        var replyMessage = message.ReplyToMessage!;
 
-        if (replyMessage is null)
+        if (replyMessage.ForwardFrom is null)
         {
-            throw new ArgumentNullException("Reply message is null");
+            throw new ArgumentNullException("Forward From is null");
         }
 
         var forwardFromId = replyMessage.ForwardFrom?.Id;
