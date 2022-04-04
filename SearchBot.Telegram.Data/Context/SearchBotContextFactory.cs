@@ -18,7 +18,7 @@ namespace SearchBot.Telegram.Data.Context
 #if RELEASE
             var connectionString = Environment.GetEnvironmentVariable("ConnectionString") ?? throw new InvalidOperationException("ConnectionString is empty");
 #else
-            var connectionString = configuration.GetConnectionString(nameof(SearchBotContext));
+            var connectionString = configuration.GetConnectionString(nameof(SearchBotContext)) ?? throw new InvalidOperationException($"ConnectionString '{nameof(SearchBotContext)}' is empty");
 #endif
             var optionsBuilder = new DbContextOptionsBuilder()
                 .UseNpgsql(connectionString,

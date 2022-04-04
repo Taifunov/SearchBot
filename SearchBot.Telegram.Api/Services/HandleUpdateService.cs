@@ -98,14 +98,9 @@ public class HandleUpdateService : IHandleUpdateService
 
     private async Task SaveMessageAsync(User user, string message, int messageId, CancellationToken cancellationToken = default)
     {
-        if (user.TelegramUser is null)
+      var messageToSave = new UserMessages
         {
-            throw new ArgumentNullException("Telegram user is null");
-        }
-
-        var messageToSave = new UserMessages
-        {
-            Username = user.TelegramUser!.Username!,
+            Username = user.TelegramUser?.Username,
             TelegramUserId = user.TelegramUser.Id,
             TelegramMessageId = messageId,
             Content = message
