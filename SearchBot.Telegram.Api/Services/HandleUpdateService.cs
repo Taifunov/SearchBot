@@ -77,7 +77,7 @@ public class HandleUpdateService : IHandleUpdateService
 
             await _botClient.ForwardMessageAsync(_adminId, message.Chat.Id, message.MessageId, cancellationToken: cancellationToken);
             
-            if (user.LastAction > DateTime.UtcNow.AddHours(-1))
+            if (user.LastAction.AddHours(1) > DateTime.UtcNow)
             {
                 await SendResponseMessageAsync("response-message", message.Chat.Id, cancellationToken);
             }
