@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SearchBot.Telegram.Api.Commands;
+using SearchBot.Telegram.Api.Utils;
 using SearchBot.Telegram.Data.Context;
 using SearchBot.Telegram.Data.Models;
 using SearchBot.Telegram.Data.Utils;
@@ -16,6 +18,7 @@ public class HandleUpdateService : IHandleUpdateService
     private readonly ILogger<HandleUpdateService> _logger;
     private readonly SearchBotContext _context;
     private readonly long _adminId;
+    private const string BotUserName = "test_artifact_bot";
 
     public HandleUpdateService(ITelegramBotClient botClient, ILogger<HandleUpdateService> logger, SearchBotContext context)
     {
@@ -59,19 +62,25 @@ public class HandleUpdateService : IHandleUpdateService
 
         if (message.Chat.Type == ChatType.Private)
         {
+            var isCommand = message.Entities?.FirstOrDefault()?.Type == MessageEntityType.BotCommand;
+            if (isCommand)
+            {
+               await HandleCommandAsync(message, cancellationToken);
+               return;
+            }
+
+            var user = await _context.EnsureUserExistAsync(message.From, cancellationToken);
+
+            if (user.Banned)
+            {
+                return;
+            }
+
             if (message.ReplyToMessage is not null)
             {
                 await ReplyToUserMessageAsync(message, cancellationToken);
                 return;
             }
-
-            if (message.Text!.Split(' ')[0] == "/start")
-            {
-                await SendResponseMessageAsync("first-message", message.Chat.Id, cancellationToken);
-                return;
-            }
-
-            var user = await _context.EnsureUserExistAsync(message, cancellationToken);
 
             await SaveMessageAsync(user, message.Text, message.MessageId,cancellationToken);
 
@@ -82,6 +91,19 @@ public class HandleUpdateService : IHandleUpdateService
                 await SendResponseMessageAsync("response-message", message.Chat.Id, cancellationToken);
             }
         }
+    }
+
+    private Task HandleCommandAsync(Message message, CancellationToken cancellationToken = default)
+    {
+        var (command, argument) = ChatHelper.ParseMessageIntoCommandAndArgument(message.Text, BotUserName);
+
+        return command switch
+        {
+            "start" => GeneralCommand.StartAsync(_botClient, message.Chat.Id, _context, cancellationToken),
+            "ban" => ModerationCommand.BanAsync(_botClient, _context, message, argument, cancellationToken),
+            "unban" => ModerationCommand.UnBanAsync(_botClient, _context, message, argument, cancellationToken),
+            _ => Task.CompletedTask, // unrecognized command, ignoring
+        };
     }
 
     private async Task SendResponseMessageAsync(string messageId, long chatId, CancellationToken cancellationToken = default)

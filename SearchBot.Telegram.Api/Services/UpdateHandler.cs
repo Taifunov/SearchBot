@@ -1,5 +1,5 @@
 ﻿using SearchBot.Telegram.Api.Commands;
-using ShadowsocksUriGenerator.Chatbot.Telegram.Utils;
+using SearchBot.Telegram.Api.Utils;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
