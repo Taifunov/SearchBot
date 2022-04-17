@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SearchBot.Telegram.Data.Context;
 using SearchBot.Telegram.Data.Models;
-using User = SearchBot.Telegram.Data.Models.User;
 using TgUser = Telegram.Bot.Types.User;
 
 namespace SearchBot.Telegram.Data.Utils;
@@ -15,32 +14,25 @@ public static class DbSetExtensions
         CancellationToken cancellationToken = default)
         where T : class => dbSet.FindAsync(new[] {key}, cancellationToken);
 
-    public static async Task<User> EnsureUserExistAsync(this SearchBotContext context, TgUser? telegramUser, CancellationToken cancellationToken)
+    public static async Task<TelegramUser> EnsureUserExistAsync(this SearchBotContext context, TgUser? telegramUser, CancellationToken cancellationToken)
     {
         if (telegramUser is null)
         {
             throw new ArgumentException("Message.From is null");
         }
 
-        var user = await context.Users.Include(tu => tu.TelegramUser).
-            FirstOrDefaultAsync(u => u.TelegramUser!.Id == telegramUser.Id, cancellationToken);
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Id == telegramUser.Id, cancellationToken);
 
         if (user is null)
         {
-            user = new User
+            user = new TelegramUser
             {
-                TelegramUserId = telegramUser.Id,
+                Id = telegramUser.Id,
                 Created = DateTime.UtcNow,
-                Language = telegramUser.LanguageCode!.ToUpperInvariant(),
-                TelegramUser = new TelegramUser
-                {
-                    Id = telegramUser.Id,
-                    Username = telegramUser.Username,
-                    FirstName = telegramUser.FirstName,
-                    LastName = telegramUser.LastName,
-                    IsBot = telegramUser.IsBot,
-                    LanguageCode = telegramUser.LanguageCode
-                }
+                LanguageCode = telegramUser.LanguageCode!.ToUpperInvariant(),
+                Username = telegramUser.Username,
+                FirstName = telegramUser.FirstName,
+                LastName = telegramUser.LastName
             };
 
             await context.AddAsync(user, cancellationToken);
@@ -56,9 +48,9 @@ public static class DbSetExtensions
         return user;
     }
 
-    public static async Task<User> GetUserAsync(this SearchBotContext context, long telegramUserId)
+    public static async Task<TelegramUser> GetUserAsync(this SearchBotContext context, long telegramUserId)
     {
-        var user = await context.Users.Include(tg => tg.TelegramUser).FirstOrDefaultAsync(u => u.TelegramUserId == telegramUserId);
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Id == telegramUserId);
 
         if (user is null)
         {

@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <Folder Include="Commands\" />
+    <Folder Include="Dtos\" />
   </ItemGroup>
 
   <ItemGroup>

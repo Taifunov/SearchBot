@@ -1,4 +1,5 @@
-﻿using SearchBot.Telegram.Data.Context;
+﻿using Microsoft.EntityFrameworkCore;
+using SearchBot.Telegram.Data.Context;
 using SearchBot.Telegram.Data.Utils;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -28,6 +29,11 @@ public static class ModerationCommand
         context.Update(userToBan);
         await context.SaveChangesAsync(cancellationToken);
 
+        var replyBannedUserMsg = await context.ReplyMessages.FirstOrDefaultAsync(x => x.Id == "banned-user", cancellationToken);
+
+        var replyMessageToBannedUser = replyBannedUserMsg != null ? replyBannedUserMsg.Message + $"Причина: {(!string.IsNullOrEmpty(argument) ? argument : "не указана.")}" : $"Вы были заблокированны администратором. Причина: {(!string.IsNullOrEmpty(argument) ? argument : "не указана.")}";
+
+        await botClient.SendTextMessageAsync(replyMessage.ForwardFrom.Id, replyMessageToBannedUser, cancellationToken: cancellationToken);
         await botClient.SendTextMessageAsync(message.Chat.Id, $"{replyMessage.ForwardFrom.FirstName} banned forever.", cancellationToken: cancellationToken);
     }
 

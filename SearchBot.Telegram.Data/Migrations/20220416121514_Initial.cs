@@ -23,74 +23,47 @@ namespace SearchBot.Telegram.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "TelegramUsers",
+                name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false),
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     IsBot = table.Column<bool>(type: "boolean", nullable: false),
                     FirstName = table.Column<string>(type: "text", nullable: false),
                     LastName = table.Column<string>(type: "text", nullable: true),
                     Username = table.Column<string>(type: "text", nullable: true),
-                    LanguageCode = table.Column<string>(type: "text", nullable: true)
+                    LanguageCode = table.Column<string>(type: "text", nullable: true),
+                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    LastAction = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Banned = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TelegramUsers", x => x.Id);
+                    table.PrimaryKey("PK_Users", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Messages",
                 columns: table => new
                 {
+                    TelegramUserId = table.Column<long>(type: "bigint", nullable: false),
+                    TelegramMessageId = table.Column<long>(type: "bigint", nullable: false),
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
-                    Username = table.Column<string>(type: "text", nullable: false),
+                    Username = table.Column<string>(type: "text", nullable: true),
                     Content = table.Column<string>(type: "text", nullable: false),
-                    LastMessage = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    TelegramUserId = table.Column<long>(type: "bigint", nullable: false)
+                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Messages", x => x.Id);
+                    table.PrimaryKey("PK_Messages", x => new { x.TelegramUserId, x.TelegramMessageId });
                     table.ForeignKey(
-                        name: "FK_Messages_TelegramUsers_TelegramUserId",
+                        name: "FK_Messages_Users_TelegramUserId",
                         column: x => x.TelegramUserId,
-                        principalTable: "TelegramUsers",
+                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
-
-            migrationBuilder.CreateTable(
-                name: "Users",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
-                    Language = table.Column<string>(type: "text", nullable: false),
-                    LastAction = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    TelegramUserId = table.Column<long>(type: "bigint", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Users", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Users_TelegramUsers_TelegramUserId",
-                        column: x => x.TelegramUserId,
-                        principalTable: "TelegramUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Messages_TelegramUserId",
-                table: "Messages",
-                column: "TelegramUserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Users_TelegramUserId",
-                table: "Users",
-                column: "TelegramUserId",
-                unique: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -103,9 +76,6 @@ namespace SearchBot.Telegram.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "Users");
-
-            migrationBuilder.DropTable(
-                name: "TelegramUsers");
         }
     }
 }

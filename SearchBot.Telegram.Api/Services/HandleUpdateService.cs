@@ -8,7 +8,6 @@ using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using User = SearchBot.Telegram.Data.Models.User;
 
 namespace SearchBot.Telegram.Api.Services;
 
@@ -62,18 +61,18 @@ public class HandleUpdateService : IHandleUpdateService
 
         if (message.Chat.Type == ChatType.Private)
         {
-            var isCommand = message.Entities?.FirstOrDefault()?.Type == MessageEntityType.BotCommand;
-            if (isCommand)
-            {
-               await HandleCommandAsync(message, cancellationToken);
-               return;
-            }
-
             var user = await _context.EnsureUserExistAsync(message.From, cancellationToken);
 
             if (user.Banned)
             {
                 return;
+            }
+            
+            var isCommand = message.Entities?.FirstOrDefault()?.Type == MessageEntityType.BotCommand;
+            if (isCommand)
+            {
+               await HandleCommandAsync(message, cancellationToken);
+               return;
             }
 
             if (message.ReplyToMessage is not null)
@@ -96,12 +95,22 @@ public class HandleUpdateService : IHandleUpdateService
     private Task HandleCommandAsync(Message message, CancellationToken cancellationToken = default)
     {
         var (command, argument) = ChatHelper.ParseMessageIntoCommandAndArgument(message.Text, BotUserName);
+        var argForLastMessage = message.Chat.Id;
+        
+        if (message.ReplyToMessage?.ForwardFrom != null)
+        {
+            var arg = message.ReplyToMessage?.ForwardFrom.Id.ToString();
+
+            argForLastMessage = !string.IsNullOrEmpty(arg) ? long.Parse(arg) : message.Chat.Id;
+        }
+        
 
         return command switch
         {
             "start" => GeneralCommand.StartAsync(_botClient, message.Chat.Id, _context, cancellationToken),
             "ban" => ModerationCommand.BanAsync(_botClient, _context, message, argument, cancellationToken),
             "unban" => ModerationCommand.UnBanAsync(_botClient, _context, message, argument, cancellationToken),
+            "last" => GeneralCommand.GetLast3DaysMessagesAsync(_botClient, argForLastMessage, _context, _adminId ,cancellationToken),
             _ => Task.CompletedTask, // unrecognized command, ignoring
         };
     }
@@ -118,18 +127,26 @@ public class HandleUpdateService : IHandleUpdateService
         await _botClient.SendTextMessageAsync(chatId, message, cancellationToken: cancellationToken);
     }
 
-    private async Task SaveMessageAsync(User user, string message, int messageId, CancellationToken cancellationToken = default)
+    private async Task SaveMessageAsync(TelegramUser user, string message, int messageId, CancellationToken cancellationToken = default)
     {
-      var messageToSave = new UserMessages
+        try
         {
-            Username = user.TelegramUser?.Username,
-            TelegramUserId = user.TelegramUser.Id,
-            TelegramMessageId = messageId,
-            Content = message
-        };
+            var messageToSave = new UserMessages
+            {
+                TelegramMessageId = messageId,
+                Username = user.Username,
+                TelegramUserId = user.Id,
+                Content = message
+            };
 
-        await _context.AddAsync(messageToSave, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
+            await _context.AddAsync(messageToSave, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (Exception ex )
+        {
+            _logger.LogError(ex, ex.Message);
+            throw;
+        }
     }
 
     private async Task ReplyToUserMessageAsync(Message message, CancellationToken cancellationToken = default)
@@ -145,7 +162,7 @@ public class HandleUpdateService : IHandleUpdateService
 
         var messageToReply = await _context.Messages.FirstOrDefaultAsync(x => x.TelegramUserId == forwardFromId.GetValueOrDefault() && x.Content == replyMessage.Text, cancellationToken);
 
-        await _botClient.SendTextMessageAsync(replyMessage.ForwardFrom!.Id, message.Text!, replyToMessageId: messageToReply?.TelegramMessageId, cancellationToken: cancellationToken);
+        await _botClient.SendTextMessageAsync(replyMessage.ForwardFrom!.Id, message.Text!, replyToMessageId: messageToReply?.Id, cancellationToken: cancellationToken);
     }
 
     private Task UnknownUpdateHandlerAsync(Update update)

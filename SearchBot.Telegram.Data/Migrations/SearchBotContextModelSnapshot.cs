@@ -44,6 +44,12 @@ namespace SearchBot.Telegram.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<bool>("Banned")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("text");
@@ -54,6 +60,9 @@ namespace SearchBot.Telegram.Data.Migrations
                     b.Property<string>("LanguageCode")
                         .HasColumnType("text");
 
+                    b.Property<DateTime>("LastAction")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("LastName")
                         .HasColumnType("text");
 
@@ -62,48 +71,16 @@ namespace SearchBot.Telegram.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TelegramUsers");
-                });
-
-            modelBuilder.Entity("SearchBot.Telegram.Data.Models.User", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<bool>("Banned")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Language")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("LastAction")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<long>("TelegramUserId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TelegramUserId")
-                        .IsUnique();
-
                     b.ToTable("Users");
                 });
 
             modelBuilder.Entity("SearchBot.Telegram.Data.Models.UserMessages", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                    b.Property<long>("TelegramUserId")
+                        .HasColumnType("bigint");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    b.Property<long>("TelegramMessageId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Content")
                         .IsRequired()
@@ -112,25 +89,25 @@ namespace SearchBot.Telegram.Data.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("TelegramMessageId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    b.Property<long>("TelegramUserId")
-                        .HasColumnType("bigint");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Username")
                         .HasColumnType("text");
 
-                    b.HasKey("Id");
+                    b.HasKey("TelegramUserId", "TelegramMessageId");
 
                     b.ToTable("Messages");
                 });
 
-            modelBuilder.Entity("SearchBot.Telegram.Data.Models.User", b =>
+            modelBuilder.Entity("SearchBot.Telegram.Data.Models.UserMessages", b =>
                 {
                     b.HasOne("SearchBot.Telegram.Data.Models.TelegramUser", "TelegramUser")
-                        .WithOne("User")
-                        .HasForeignKey("SearchBot.Telegram.Data.Models.User", "TelegramUserId")
+                        .WithMany("Messages")
+                        .HasForeignKey("TelegramUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -139,7 +116,7 @@ namespace SearchBot.Telegram.Data.Migrations
 
             modelBuilder.Entity("SearchBot.Telegram.Data.Models.TelegramUser", b =>
                 {
-                    b.Navigation("User");
+                    b.Navigation("Messages");
                 });
 #pragma warning restore 612, 618
         }
