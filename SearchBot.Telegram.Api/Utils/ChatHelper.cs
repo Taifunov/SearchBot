@@ -132,7 +132,7 @@ public static class ChatHelper
     /// Command is null if the text message is not a command to the bot.
     /// Argument can be null.
     /// </returns>
-    public static (string? command, string? argument) ParseMessageIntoCommandAndArgument(ReadOnlySpan<char> text, string botUsername)
+    public static (string? command, string? argument) ParseMessageIntoCommandAndArgument(ReadOnlySpan<char> text, string? botUsername = null)
     {
         // Empty message
         if (text.IsEmpty)

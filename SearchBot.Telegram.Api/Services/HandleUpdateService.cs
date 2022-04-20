@@ -17,7 +17,6 @@ public class HandleUpdateService : IHandleUpdateService
     private readonly ILogger<HandleUpdateService> _logger;
     private readonly SearchBotContext _context;
     private readonly long _adminId;
-    private const string BotUserName = "test_artifact_bot";
 
     public HandleUpdateService(ITelegramBotClient botClient, ILogger<HandleUpdateService> logger, SearchBotContext context)
     {
@@ -94,7 +93,7 @@ public class HandleUpdateService : IHandleUpdateService
 
     private Task HandleCommandAsync(Message message, CancellationToken cancellationToken = default)
     {
-        var (command, argument) = ChatHelper.ParseMessageIntoCommandAndArgument(message.Text, BotUserName);
+        var (command, argument) = ChatHelper.ParseMessageIntoCommandAndArgument(message.Text);
         var argForLastMessage = message.Chat.Id;
         
         if (message.ReplyToMessage?.ForwardFrom != null)
@@ -155,7 +154,7 @@ public class HandleUpdateService : IHandleUpdateService
 
         if (replyMessage.ForwardFrom is null)
         {
-            throw new ArgumentNullException("Forward From is null");
+            throw new ArgumentNullException($"{nameof(replyMessage.ForwardFrom)} is null");
         }
 
         var forwardFromId = replyMessage.ForwardFrom?.Id;
@@ -173,13 +172,13 @@ public class HandleUpdateService : IHandleUpdateService
 
     public Task HandleErrorAsync(Exception exception)
     {
-        var ErrorMessage = exception switch
+        var errorMessage = exception switch
         {
             ApiRequestException apiRequestException => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
             _ => exception.ToString()
         };
 
-        _logger.LogInformation("HandleError: {ErrorMessage}", ErrorMessage);
+        _logger.LogInformation("HandleError: {ErrorMessage}", errorMessage);
         return Task.CompletedTask;
     }
 }
