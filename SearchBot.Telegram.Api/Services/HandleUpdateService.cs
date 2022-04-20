@@ -162,7 +162,7 @@ public class HandleUpdateService : IHandleUpdateService
 
         var messageToReply = await _context.Messages.FirstOrDefaultAsync(x => x.TelegramUserId == forwardFromId.GetValueOrDefault() && x.Content == replyMessage.Text, cancellationToken);
 
-        await _botClient.SendTextMessageAsync(replyMessage.ForwardFrom!.Id, message.Text!, replyToMessageId: messageToReply?.Id, cancellationToken: cancellationToken);
+        await _botClient.SendTextMessageAsync(replyMessage.ForwardFrom!.Id, message.Text!, replyToMessageId: (int?)messageToReply?.TelegramMessageId, cancellationToken: cancellationToken);
     }
 
     private Task UnknownUpdateHandlerAsync(Update update)
